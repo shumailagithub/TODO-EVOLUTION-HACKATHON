@@ -7,11 +7,12 @@ export default async function handler(req, res) {
   }
 
   try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
     let backendResponse;
 
     if (req.method === 'DELETE') {
       // Forward DELETE request to backend
-      backendResponse = await fetch(`http://localhost:8000/api/tasks/${id}`, {
+      backendResponse = await fetch(`${apiUrl}/api/tasks/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': req.headers.authorization || '',
@@ -20,7 +21,7 @@ export default async function handler(req, res) {
       });
     } else if (req.method === 'PUT') {
       // Forward PUT request to backend
-      backendResponse = await fetch(`http://localhost:8000/api/tasks/${id}`, {
+      backendResponse = await fetch(`${apiUrl}/api/tasks/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': req.headers.authorization || '',
@@ -32,11 +33,22 @@ export default async function handler(req, res) {
       return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    const data = await backendResponse.json();
+    // Check if the response is JSON before parsing
+    const contentType = backendResponse.headers.get('content-type');
+    let data;
+
+    if (contentType && contentType.includes('application/json')) {
+      data = await backendResponse.json();
+    } else {
+      // If not JSON, return a generic error
+      const text = await backendResponse.text();
+      console.error('Non-JSON response from backend:', text);
+      data = { detail: 'Internal server error', error: text };
+    }
 
     res.status(backendResponse.status).json(data);
   } catch (error) {
     console.error('Error forwarding request to backend:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Cannot connect to backend server. Please make sure backend is running on port 8001.' });
   }
 }

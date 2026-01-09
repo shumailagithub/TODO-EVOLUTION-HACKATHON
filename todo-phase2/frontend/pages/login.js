@@ -34,7 +34,7 @@ export default function Login() {
         setError(data.detail || 'Login failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('Cannot connect to backend. Make sure it\'s running on port 8001.');
     } finally {
       setLoading(false);
     }

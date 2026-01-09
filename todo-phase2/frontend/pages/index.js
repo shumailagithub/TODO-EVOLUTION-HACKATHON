@@ -26,8 +26,16 @@ export default function Home() {
   const [filter, setFilter] = useState('all');
   const [isAdding, setIsAdding] = useState(false);
 
-  // Load tasks from backend API on component mount
+  // Check authentication on component mount
   useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      // Redirect to login if no token exists
+      window.location.href = '/login';
+      return; // Early return to stop further execution
+    }
+
+    // Load tasks from backend API on component mount
     const savedDarkMode = localStorage.getItem('darkMode');
     if (savedDarkMode) {
       setDarkMode(JSON.parse(savedDarkMode));
