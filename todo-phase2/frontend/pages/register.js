@@ -35,14 +35,13 @@ export default function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store token and redirect
-        localStorage.setItem('authToken', data.access_token);
+        // Redirect to login after successful registration (do not store token)
         router.push('/login'); // Redirect to login after successful registration
       } else {
         setError(data.detail || 'Registration failed');
       }
     } catch (err) {
-      setError('Cannot connect to server. Please make sure backend is running on port 8000 and frontend is running on port 3000.');
+      setError('Cannot connect to backend. Make sure it\'s running on port 8001.');
     } finally {
       setLoading(false);
     }

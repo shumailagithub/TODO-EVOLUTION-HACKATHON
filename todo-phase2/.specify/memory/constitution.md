@@ -1,3 +1,12 @@
+<!-- SYNC IMPACT REPORT
+Version change: 1.2.0 → 1.3.0
+Modified principles: Added X. Task Management UI/UX Principles (new section)
+Added sections: X. Task Management UI/UX Principles
+Removed sections: None
+Templates requiring updates: ⚠ pending review of plan-template.md, spec-template.md, tasks-template.md
+Follow-up TODOs: None
+-->
+
 # Todo Evolution Project Constitution
 
 ## Core Principles
@@ -47,6 +56,44 @@ Implement only what is specified. Do not add:
 - Unused configuration options
 
 Start simple. Add complexity only when explicitly required by the specification.
+
+### VII. Authentication Flow Principles (NON-NEGOTIABLE)
+For Phase II and beyond where authentication is introduced:
+- User registration MUST NOT store tokens, only redirect to login page after successful registration
+- Login MUST properly authenticate users and store JWT tokens in localStorage
+- Home page MUST verify authentication before loading tasks
+- All protected API calls MUST include Authorization header with Bearer token
+- Authentication flow MUST follow: Register → Success → Redirect to /login, Login → Store token → Redirect to / (home), Home → Check token → Fetch tasks OR redirect to /login
+
+### VIII. Authentication Error Handling (NON-NEGOTIABLE)
+The application MUST handle authentication errors appropriately:
+- Connection errors MUST display: "Cannot connect to backend. Make sure it's running on port 8001"
+- 401 Unauthorized errors MUST trigger auto-redirect to login page
+- Validation errors MUST display specific error messages from backend
+- Display clear, user-friendly error messages when backend is unavailable
+- Error handling MUST NOT expose internal system details to users
+
+### IX. Password Hashing Security Principles (NON-NEGOTIABLE)
+The application MUST handle password security with the following requirements:
+- Passwords MUST be UTF-8 encoded and truncated to 72 bytes before bcrypt hashing
+- Use bcrypt directly with 12 rounds of salt for password hashing (not passlib's bcrypt wrapper)
+- Store only hashed passwords, never plain text passwords
+- Handle bcrypt version compatibility issues gracefully to prevent 500 Internal Server Errors
+- Registration endpoint MUST NOT crash when hashing passwords with proper error handling
+- Password length validation MUST occur before hashing to prevent bcrypt limitations from causing failures
+
+### X. Task Management UI/UX Principles (NON-NEGOTIABLE)
+For Phase II and beyond where task management UI is enhanced:
+- Each task MUST have an Edit button to update title and description
+- Each task MUST have a Delete button to remove from database with confirmation
+- Edit functionality MUST provide inline editing capability with Save/Cancel buttons
+- Delete functionality MUST show confirmation dialog before permanent removal
+- Both Edit and Delete buttons MUST be positioned next to each task in the UI
+- All CRUD operations (Create, Read, Update, Delete) MUST sync with NeonDB
+- Existing functionality (add, list, complete tasks) MUST NOT be modified when adding Edit/Delete
+- UI MUST maintain current design style and animations when adding new functionality
+- Loading and error states MUST be properly handled for all Edit/Delete operations
+- Backend endpoints MUST follow REST conventions: PUT for updates, DELETE for removals
 
 ## Phase I Constraints (Current Phase)
 
@@ -140,4 +187,4 @@ All implementation work MUST verify compliance with:
 - Quality standards
 - Technology constraints
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-07 | **Last Amended**: 2026-01-07
+**Version**: 1.3.0 | **Ratified**: 2026-01-07 | **Last Amended**: 2026-01-09
