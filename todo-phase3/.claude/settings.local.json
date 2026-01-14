@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"from models.user import User; print\\(''User model loaded successfully''\\)\")"
+    ]
+  }
+}
