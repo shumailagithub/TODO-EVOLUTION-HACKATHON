@@ -258,8 +258,6 @@ async def create_task_endpoint(
     )
 
     # Since we just created the task, we need to get all tasks to find the serial number
-
-    # Since we just created the task, we need to get all tasks to find the serial number
     all_tasks_with_serial = get_tasks_with_serial(session, user_id)
 
     # Find the newly created task by matching the ID
@@ -269,6 +267,20 @@ async def create_task_endpoint(
             new_task_serial = t['serial_number']
             break
 
+    # If we still don't have a serial number, we need to handle this appropriately
+    # The serial number should exist since the view assigns one based on the order of creation
+    if new_task_serial is None:
+        # As a fallback, we'll get the highest serial number for this user and add 1
+        # This shouldn't happen in normal circumstances, but we handle it just in case
+        all_user_tasks = get_tasks_with_serial(session, user_id)
+        if all_user_tasks:
+            # Sort by serial number and get the highest one
+            highest_serial = max(t['serial_number'] for t in all_user_tasks)
+            new_task_serial = highest_serial + 1
+        else:
+            # If no tasks exist, this should be serial number 1
+            new_task_serial = 1
+
     # Format the created_at datetime
     created_at_dt = task.created_at
     if isinstance(created_at_dt, str):
@@ -276,8 +288,8 @@ async def create_task_endpoint(
         created_at_dt = datetime.fromisoformat(created_at_dt.replace('Z', '+00:00'))
 
     return TaskResponse(
-        serial_number=new_task_serial or 0,  # Fallback to 0 if not found
-        id=str(new_task_serial or 0),  # Use serial number as id for frontend compatibility
+        serial_number=new_task_serial,
+        id=str(new_task_serial),  # Use serial number as id for frontend compatibility
         title=task.title,
         description=task.description,
         completed=task.completed,
@@ -369,6 +381,20 @@ async def update_task_endpoint(
             updated_task_serial = t['serial_number']
             break
 
+    # If we still don't have a serial number, we need to handle this appropriately
+    # The serial number should exist since the view assigns one based on the order of creation
+    if updated_task_serial is None:
+        # As a fallback, we'll get the highest serial number for this user and add 1
+        # This shouldn't happen in normal circumstances, but we handle it just in case
+        all_user_tasks = get_tasks_with_serial(session, user_id)
+        if all_user_tasks:
+            # Sort by serial number and get the highest one
+            highest_serial = max(t['serial_number'] for t in all_user_tasks)
+            updated_task_serial = highest_serial + 1
+        else:
+            # If no tasks exist, this should be serial number 1
+            updated_task_serial = 1
+
     # Format the created_at datetime
     created_at_dt = task.created_at
     if isinstance(created_at_dt, str):
@@ -376,8 +402,8 @@ async def update_task_endpoint(
         created_at_dt = datetime.fromisoformat(created_at_dt.replace('Z', '+00:00'))
 
     return TaskResponse(
-        serial_number=updated_task_serial or 0,  # Fallback to 0 if not found
-        id=str(updated_task_serial or 0),  # Use serial number as id for frontend compatibility
+        serial_number=updated_task_serial,
+        id=str(updated_task_serial),  # Use serial number as id for frontend compatibility
         title=task.title,
         description=task.description,
         completed=task.completed,
@@ -555,6 +581,20 @@ async def toggle_task_endpoint(
             toggled_task_serial = t['serial_number']
             break
 
+    # If we still don't have a serial number, we need to handle this appropriately
+    # The serial number should exist since the view assigns one based on the order of creation
+    if toggled_task_serial is None:
+        # As a fallback, we'll get the highest serial number for this user and add 1
+        # This shouldn't happen in normal circumstances, but we handle it just in case
+        all_user_tasks = get_tasks_with_serial(session, user_id)
+        if all_user_tasks:
+            # Sort by serial number and get the highest one
+            highest_serial = max(t['serial_number'] for t in all_user_tasks)
+            toggled_task_serial = highest_serial + 1
+        else:
+            # If no tasks exist, this should be serial number 1
+            toggled_task_serial = 1
+
     # Format the created_at datetime
     created_at_dt = task.created_at
     if isinstance(created_at_dt, str):
@@ -562,8 +602,8 @@ async def toggle_task_endpoint(
         created_at_dt = datetime.fromisoformat(created_at_dt.replace('Z', '+00:00'))
 
     return TaskResponse(
-        serial_number=toggled_task_serial or 0,  # Fallback to 0 if not found
-        id=str(toggled_task_serial or 0),  # Use serial number as id for frontend compatibility
+        serial_number=toggled_task_serial,
+        id=str(toggled_task_serial),  # Use serial number as id for frontend compatibility
         title=task.title,
         description=task.description,
         completed=task.completed,
@@ -622,6 +662,20 @@ async def toggle_task_by_serial_endpoint(
             toggled_task_serial = t['serial_number']
             break
 
+    # If we still don't have a serial number, we need to handle this appropriately
+    # The serial number should exist since the view assigns one based on the order of creation
+    if toggled_task_serial is None:
+        # As a fallback, we'll get the highest serial number for this user and add 1
+        # This shouldn't happen in normal circumstances, but we handle it just in case
+        all_user_tasks = get_tasks_with_serial(session, user_id)
+        if all_user_tasks:
+            # Sort by serial number and get the highest one
+            highest_serial = max(t['serial_number'] for t in all_user_tasks)
+            toggled_task_serial = highest_serial + 1
+        else:
+            # If no tasks exist, this should be serial number 1
+            toggled_task_serial = 1
+
     # Format the created_at datetime
     created_at_dt = task.created_at
     if isinstance(created_at_dt, str):
@@ -629,8 +683,8 @@ async def toggle_task_by_serial_endpoint(
         created_at_dt = datetime.fromisoformat(created_at_dt.replace('Z', '+00:00'))
 
     return TaskResponse(
-        serial_number=toggled_task_serial or 0,  # Fallback to 0 if not found
-        id=str(toggled_task_serial or 0),  # Use serial number as id for frontend compatibility
+        serial_number=toggled_task_serial,
+        id=str(toggled_task_serial),  # Use serial number as id for frontend compatibility
         title=task.title,
         description=task.description,
         completed=task.completed,

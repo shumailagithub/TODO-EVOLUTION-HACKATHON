@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.auth import router as auth_router
 from api.tasks import router as tasks_router
 from api.chat import router as chat_router
+from db.connection import get_session
+from db.serial_view import create_tasks_with_serial_view
 
 # Create FastAPI app
 app = FastAPI(title="Todo API Phase-2", version="0.1.0")
@@ -25,6 +27,18 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(chat_router)
+
+
+@app.on_event("startup")
+def startup_event():
+    """Initialize the tasks_with_serial view when the application starts."""
+    print("Initializing tasks_with_serial view...")
+    with next(get_session()) as session:
+        success = create_tasks_with_serial_view(session)
+        if success:
+            print("Successfully created/updated tasks_with_serial view")
+        else:
+            print("Failed to create/update tasks_with_serial view")
 
 
 @app.get("/")
