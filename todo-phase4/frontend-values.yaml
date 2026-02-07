@@ -1,0 +1,52 @@
+# Custom values file for deploying only the frontend
+frontend:
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort  # Changed to NodePort for easy access
+    port: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    NEXT_PUBLIC_API_URL: "http://localhost:8001"  # Example API URL
+
+# Enable backend by setting replica count to 1
+backend:
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8001
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    DATABASE_URL: "sqlite:////tmp/todo_app.db"
+    JWT_SECRET: "this-is-a-very-long-secret-key-for-jwt-token-generation-32-chars-minimum"
+    OPENAI_API_KEY: "your-openai-api-key-here"
+    ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+    REFRESH_TOKEN_EXPIRE_DAYS: "7"
+    BCRYPT_ROUNDS: "12"
+
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 5
