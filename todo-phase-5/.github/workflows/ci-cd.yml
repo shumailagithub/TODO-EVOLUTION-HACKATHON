@@ -1,0 +1,125 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64
+        push: true
+        tags: ${{ env.REGISTRY }}:${{ env.IMAGE_TAG }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Run tests
+      run: |
+        echo "Running tests..."
+        # Add your test commands here
+        # For example: npm test, pytest, etc.
+
+  deploy-aks:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: vars.DEPLOY_TO_AKS == 'true'
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Set up Azure CLI
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get AKS credentials
+      run: |
+        az aks get-credentials --resource-group ${{ vars.AKS_RESOURCE_GROUP }} --name ${{ vars.AKS_CLUSTER_NAME }}
+
+    - name: Deploy to AKS
+      run: |
+        # Update image references in Kubernetes manifests
+        find . -name '*.yaml' -type f -exec sed -i "s|CONTAINER_IMAGE|${{ env.REGISTRY }}:${{ env.IMAGE_TAG }}|g" {} \;
+        
+        # Apply Kubernetes manifests
+        kubectl apply -f ./k8s/
+        
+        # Wait for rollout to complete
+        kubectl rollout status deployment/todo-backend -n default
+        kubectl rollout status deployment/todo-frontend -n default
+
+  deploy-gke:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: vars.DEPLOY_TO_GKE == 'true'
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ vars.GKE_PROJECT_ID }}
+        service_account_key: ${{ secrets.GKE_SA_KEY }}
+        export_default_credentials: true
+
+    - name: Setup kubectl for GKE
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: ${{ vars.GKE_CLUSTER_NAME }}
+        location: ${{ vars.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
+
+    - name: Deploy to GKE
+      run: |
+        # Update image references in Kubernetes manifests
+        find . -name '*.yaml' -type f -exec sed -i "s|CONTAINER_IMAGE|${{ env.REGISTRY }}:${{ env.IMAGE_TAG }}|g" {} \;
+        
+        # Apply Kubernetes manifests
+        kubectl apply -f ./k8s/
+        
+        # Wait for rollout to complete
+        kubectl rollout status deployment/todo-backend -n default
+        kubectl rollout status deployment/todo-frontend -n default
