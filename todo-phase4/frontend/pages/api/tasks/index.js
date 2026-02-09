@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
     let backendResponse;
 
     if (req.method === 'GET') {

@@ -88,7 +88,7 @@ export default function ChatPage() {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/${encodeURIComponent(user.user_id)}/chat`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002'}/${encodeURIComponent(user.user_id)}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

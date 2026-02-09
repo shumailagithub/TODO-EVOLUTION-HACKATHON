@@ -1,0 +1,56 @@
+# Default values for todo-app
+
+# Frontend configuration
+frontend:
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    NEXT_PUBLIC_API_URL: "http://frontend-todo-release-todo-app-backend:8001"
+  # Example environment variables:
+  # env:
+  #   NODE_ENV: "production"
+
+# Backend configuration
+backend:
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8001
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env: {}
+  # Example environment variables:
+  # env:
+  #   DATABASE_URL: "postgresql://user:password@postgres:5432/todo_db"
+  #   SECRET_KEY: "your-secret-key"
+
+# Probes configuration
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 5
