@@ -1,0 +1,10 @@
+[project]
+name = "in-memory-todo-cli"
+version = "1.0.0"
+description = "In-Memory Todo Console Application - Phase I"
+requires-python = ">=3.13"
+readme = "README.md"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

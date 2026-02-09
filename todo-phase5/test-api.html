@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Backend API Test</h1>
+
+        <div class="info">
+            <strong>Instructions:</strong>
+            <ol style="margin: 10px 0; padding-left: 20px;">
+                <li>Make sure backend is running on <code>http://localhost:8001</code></li>
+                <li>Enter a username and password below</li>
+                <li>Click "Test Registration"</li>
+                <li>Check the result message</li>
+            </ol>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username (3-50 characters):</label>
+            <input type="text" id="username" placeholder="testuser123" value="testuser123">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password (minimum 8 characters):</label>
+            <input type="password" id="password" placeholder="password123" value="password123">
+        </div>
+
+        <button id="testBtn" onclick="testRegistration()">Test Registration</button>
+        <button onclick="testConnection()" style="background-color: #28a745; margin-top: 5px;">Test Backend Connection</button>
+
+        <div id="result" class="result"></div>
+
+        <div class="status">
+            <strong>Backend URL:</strong> <span id="backendUrl">http://localhost:8001</span><br>
+            <strong>Status:</strong> <span id="status">Not tested yet</span>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:8001';
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            const statusSpan = document.getElementById('status');
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '⏳ Testing connection...';
+            statusSpan.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/`, {
+                    method: 'GET',
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Backend Connection Successful!</strong><br><br>
+                        <strong>Response:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    statusSpan.textContent = '✅ Connected';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ Backend Error</strong><br><br>
+                        Status: ${response.status}<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    `;
+                    statusSpan.textContent = '❌ Error';
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <strong>❌ Connection Failed!</strong><br><br>
+                    <strong>Error:</strong> ${error.message}<br><br>
+                    <strong>Possible causes:</strong>
+                    <ul>
+                        <li>Backend is not running on port 8001</li>
+                        <li>CORS is not configured correctly</li>
+                        <li>Network/firewall blocking the request</li>
+                    </ul>
+                    <strong>Solution:</strong> Make sure backend is running with:<br>
+                    <code>cd backend && python main.py</code>
+                `;
+                statusSpan.textContent = '❌ Failed';
+                console.error('Connection error:', error);
+            }
+        }
+
+        async function testRegistration() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            const testBtn = document.getElementById('testBtn');
+            const statusSpan = document.getElementById('status');
+
+            // Validation
+            if (!username || username.length < 3 || username.length > 50) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>❌ Validation Error</strong><br>Username must be 3-50 characters';
+                return;
+            }
+
+            if (!password || password.length < 8) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>❌ Validation Error</strong><br>Password must be at least 8 characters';
+                return;
+            }
+
+            // Disable button and show loading
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing...';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '⏳ Sending registration request...';
+            statusSpan.textContent = 'Testing...';
+
+            try {
+                console.log('Sending request to:', `${BACKEND_URL}/api/auth/register`);
+                console.log('Request body:', { username, password });
+
+                const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Registration Successful!</strong><br><br>
+                        <strong>User Created:</strong> ${data.username}<br>
+                        <strong>User ID:</strong> ${data.user_id}<br><br>
+                        <strong>Tokens Received:</strong>
+                        <ul>
+                            <li>Access Token: ${data.access_token.substring(0, 50)}...</li>
+                            <li>Refresh Token: ${data.refresh_token.substring(0, 50)}...</li>
+                        </ul>
+                        <strong>✅ Backend is working correctly!</strong><br>
+                        <strong>✅ CORS is configured correctly!</strong><br>
+                        <strong>✅ Database connection is working!</strong>
+                    `;
+                    statusSpan.textContent = '✅ Success';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ Registration Failed</strong><br><br>
+                        <strong>Status:</strong> ${response.status}<br>
+                        <strong>Error:</strong> ${data.detail || JSON.stringify(data)}<br><br>
+                        <strong>Note:</strong> Backend is reachable but returned an error.
+                    `;
+                    statusSpan.textContent = '❌ Backend Error';
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <strong>❌ Network Error!</strong><br><br>
+                    <strong>Error:</strong> ${error.message}<br><br>
+                    <strong>This means:</strong>
+                    <ul>
+                        <li>Backend is not running on <code>http://localhost:8001</code></li>
+                        <li>OR CORS is blocking the request</li>
+                        <li>OR Network/firewall is blocking the connection</li>
+                    </ul>
+                    <strong>Solution:</strong>
+                    <ol>
+                        <li>Make sure backend is running: <code>cd backend && python main.py</code></li>
+                        <li>Check backend logs for errors</li>
+                        <li>Verify CORS is configured in main.py</li>
+                    </ol>
+                `;
+                statusSpan.textContent = '❌ Network Error';
+                console.error('Registration error:', error);
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = 'Test Registration';
+            }
+        }
+
+        // Auto-test connection on page load
+        window.addEventListener('load', () => {
+            console.log('Page loaded. Backend URL:', BACKEND_URL);
+            console.log('Testing connection in 1 second...');
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+To access the frontend service:
+
+{{- if eq .Values.frontend.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "todo-app.fullname" . }}-frontend)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if eq .Values.frontend.service.type "ClusterIP" }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app=frontend,{{ include "todo-app.selectorLabels" . | nindent 4 | replace "app.kubernetes.io/name=" "" | replace "\n" "," | trimSuffix "," }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:3000 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 3000:3000
+{{- end }}
+
+To access the backend service:
+
+{{- if eq .Values.backend.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "todo-app.fullname" . }}-backend)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if eq .Values.backend.service.type "ClusterIP" }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app=backend,{{ include "todo-app.selectorLabels" . | nindent 4 | replace "app.kubernetes.io/name=" "" | replace "\n" "," | trimSuffix "," }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8001 to use your backend"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8001:8001
+{{- end }}

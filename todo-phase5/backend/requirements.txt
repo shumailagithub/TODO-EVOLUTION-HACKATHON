@@ -1,0 +1,10 @@
+fastapi[all]
+uvicorn[standard]
+sqlmodel>=0.0.14
+pydantic>=2.0.0
+python-jose
+bcrypt==4.2.1
+python-dotenv
+psycopg2-binary
+requests
+openai>=1.0.0

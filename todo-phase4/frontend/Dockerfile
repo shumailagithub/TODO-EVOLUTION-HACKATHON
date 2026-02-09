@@ -1,5 +1,5 @@
 # Multi-stage build for Next.js frontend application
-ARG NEXT_PUBLIC_API_URL=http://localhost:8001
+ARG NEXT_PUBLIC_API_URL=http://localhost:8002
 
 # Stage 1: Build stage
 FROM node:18-alpine AS builder

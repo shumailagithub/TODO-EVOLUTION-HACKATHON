@@ -3,6 +3,7 @@ Authentication API endpoints.
 Handles user registration, login, refresh, and logout.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.logger import logger
 from sqlmodel import Session
 from pydantic import BaseModel
 from typing import Annotated
@@ -168,10 +169,19 @@ async def login(
         )
 
     # Verify password
-    if not verify_password(request.password, user.password_hash):
+    try:
+        if not verify_password(request.password, user.password_hash):
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid email or password"
+            )
+    except Exception as e:
+        # This can happen if the password hash is invalid (e.g., from a previous hashing algorithm)
+        from fastapi.logger import logger
+        logger.error(f"Error verifying password for user {user.email}: {e}")
         raise HTTPException(
-            status_code=401,
-            detail="Invalid email or password"
+            status_code=500,
+            detail="Error verifying password. The user's password hash might be corrupted."
         )
 
     # Generate tokens
